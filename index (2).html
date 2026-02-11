@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Колесо Фортуны</title>
+    <style>
+        body {
+            background: linear-gradient(45deg, pink, #FFCC99);
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            padding-top: 50px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #FF5733;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .legend {
+            font-size: 1.2em;
+            color: #FF5733;
+            margin-top: 10px;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 5px solid #333;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.6);
+        }
+
+        .wheel {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            top: 0;
+            left: 0;
+            transform-origin: center;
+            transition: transform 4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .wheel-section {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            background-color: transparent;
+            transform-origin: 100% 100%;
+            clip-path: polygon(100% 0%, 100% 100%, 0% 100%, 0% 0%);
+        }
+
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 20px solid #FF5733;
+        }
+
+        button {
+            background-color: #FF5733;
+            color: white;
+            font-size: 1.2em;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #FF3D00;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 1.5em;
+            color: #FF5733;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Колесо Фортуны</h1>
+    <div class="legend">Желтый - Да, Красный - Нет, Черный - Возможно</div>
+
+    <div class="wheel-container">
+        <div id="wheel" class="wheel"></div>
+        <div class="pointer" id="pointer"></div>
+    </div>
+
+    <button id="spinBtn">Крутить колесо</button>
+    <button id="stopBtn">Остановить колесо</button>
+
+    <div id="result" class="result"></div>
+
+    <script>
+        let isSpinning = false;
+        let spinAngle = 0;
+        const wheel = document.getElementById('wheel');
+        const pointer = document.getElementById('pointer');
+        const spinBtn = document.getElementById('spinBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resultDiv = document.getElementById('result');
+
+        // Функция для создания 25 ячеек на колесе
+        function createWheel() {
+            let wheelHTML = '';
+            const numSections = 25;
+            const colors = ['yellow', 'red', 'black'];
+            const anglePerSection = 360 / numSections;
+
+            for (let i = 0; i < numSections; i++) {
+                const color = colors[i % 3];  // Чередуем цвета: желтый, красный, черный
+                wheelHTML += `<div class="wheel-section" style="background-color: ${color}; transform: rotate(${i * anglePerSection}deg);"></div>`;
+            }
+
+            wheel.innerHTML = wheelHTML;
+        }
+
+        createWheel();
+
+        // Функция для определения цвета, на котором остановилось колесо
+        function getColorFromAngle(angle) {
+            const numSections = 25;
+            const anglePerSection = 360 / numSections;
+            const sectionIndex = Math.floor(angle / anglePerSection) % numSections;
+
+            if (sectionIndex % 3 === 0) return 'Желтый - Да';
+            if (sectionIndex % 3 === 1) return 'Красный - Нет';
+            return 'Черный - Возможно';
+        }
+
+        // Кнопка "Крутить колесо"
+        spinBtn.addEventListener('click', function() {
+            if (isSpinning) return;
+            isSpinning = true;
+            spinAngle = Math.floor(Math.random() * 360) + 1800; // Минимум 5 полных оборотов
+            wheel.style.transform = `rotate(${spinAngle}deg)`;
+            resultDiv.innerHTML = ''; // Скрыть результат, пока колесо крутится
+        });
+
+        // Кнопка "Остановить колесо"
+        stopBtn.addEventListener('click', function() {
+            if (!isSpinning) return;
+            isSpinning = false;
+            const finalAngle = spinAngle % 360; // Получаем угол остановки
+            const color = getColorFromAngle(finalAngle);
+
+            wheel.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1)';
+            resultDiv.innerHTML = `Результат: ${color}`; // Показываем результат
+
+            // Позиционирование стрелки для указания на результат
+            pointer.style.transform = `translateX(-50%) rotate(${finalAngle}deg)`;
+        });
+
+    </script>
+
+</body>
+</html>
