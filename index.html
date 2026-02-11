@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Кубики с Звуком</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #2a2a2a;
+      font-family: 'Roboto', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #fff;
+      text-align: center;
+    }
+
+    .game-container {
+      width: 480px;
+      height: 600px;
+      background: linear-gradient(135deg, #ff6a00, #ee0979);
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+      padding: 20px;
+    }
+
+    h2, h3 {
+      font-family: 'Arial', sans-serif;
+    }
+
+    #gameArea {
+      width: 100%;
+      height: 400px;
+      background-color: #000;
+      border-radius: 15px;
+      position: relative;
+      margin: 20px 0;
+      box-shadow: 0 0 20px #ff6a00;
+    }
+
+    button {
+      padding: 12px 25px;
+      margin: 10px 5px;
+      border-radius: 20px;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      background: #ff6a00;
+      color: white;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #ee0979;
+      transform: scale(1.1);
+    }
+
+    input {
+      padding: 8px;
+      font-size: 18px;
+      width: 80px;
+      border: none;
+      border-radius: 5px;
+    }
+
+    .cube {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: black;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 15px white;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="game-container">
+    <h2>⏱ Время: <span id="time">0</span> сек</h2>
+    <h3>⭐ Счёт: <span id="score">0</span></h3>
+
+    Время игры:
+    <input type="number" id="customTime" value="30"> сек<br><br>
+
+    <button id="startBtn">Старт</button>
+    <button id="stopBtn">Выход</button>
+
+    <div id="gameArea"></div>
+  </div>
+
+  <!-- Громкий звук (концепт) -->
+  <audio id="energeticSound" src="https://www.soundjay.com/button/explosion-01.wav" preload="auto"></audio>
+  <audio id="startSound" src="https://www.soundjay.com/button/beep-09.wav" preload="auto"></audio>
+  <audio id="endSound" src="https://www.soundjay.com/button/beep-06.wav" preload="auto"></audio>
+
+  <script>
+    let totalTime = 0;
+    let timeLeft = 0;
+    let score = 0;
+
+    let gameTimer = null;
+    let cubeTimer = null;
+    let cubeCountdown = null;
+
+    const timeEl = document.getElementById("time");
+    const scoreEl = document.getElementById("score");
+    const area = document.getElementById("gameArea");
+    const energeticSound = document.getElementById("energeticSound");
+    const startSound = document.getElementById("startSound");
+    const endSound = document.getElementById("endSound");
+
+    let soundPlayed = false;
+
+    document.getElementById("startBtn").onclick = startGame;
+    document.getElementById("stopBtn").onclick = endGame;
+
+    function startGame() {
+      if (!soundPlayed) {
+        playSound(startSound);  // Игровой стартовый звук
+        soundPlayed = true;
+      }
+
+      clearAll();
+      totalTime = Number(document.getElementById("customTime").value);
+      timeLeft = totalTime;
+      score = 0;
+
+      timeEl.textContent = timeLeft;
+      scoreEl.textContent = score;
+      area.innerHTML = "";
+
+      gameTimer = setInterval(() => {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+        if (timeLeft <= 0) endGame();
+      }, 1000);
+
+      spawnCube();
+    }
+
+    function spawnCube() {
+      if (timeLeft <= 0) return;
+
+      area.innerHTML = "";
+      clearTimeout(cubeTimer);
+      clearInterval(cubeCountdown);
+
+      const cube = document.createElement("div");
+      cube.className = "cube";
+
+      const size = Math.floor(Math.random() * 60) + 30;
+      cube.style.width = size + "px";
+      cube.style.height = size + "px";
+      cube.style.left = Math.random() * (420 - size) + "px";
+      cube.style.top = Math.random() * (420 - size) + "px";
+      cube.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 60%)`;
+
+      const progress = timeLeft / totalTime;
+      let lifeTime = 1000;
+      if (progress > 0.7) lifeTime = 3000;
+      else if (progress > 0.3) lifeTime = 2000;
+
+      let seconds = lifeTime / 1000;
+      cube.textContent = seconds;
+
+      cubeCountdown = setInterval(() => {
+        seconds--;
+        cube.textContent = seconds;
+      }, 1000);
+
+      cube.onclick = () => {
+        score++;
+        scoreEl.textContent = score;
+        playSound(energeticSound); // Громкий, энергичный звук при клике
+        spawnCube();
+      };
+
+      area.appendChild(cube);
+
+      cubeTimer = setTimeout(spawnCube, lifeTime);
+    }
+
+    function endGame() {
+      clearAll();
+      area.innerHTML = "";
+      playSound(endSound);
+      alert("Игра окончена! Счёт: " + score);
+    }
+
+    function clearAll() {
+      clearInterval(gameTimer);
+      clearTimeout(cubeTimer);
+      clearInterval(cubeCountdown);
+    }
+
+    function playSound(sound) {
+      sound.play();
+    }
+  </script>
+</body>
+</html>
